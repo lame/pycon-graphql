@@ -1,0 +1,7 @@
+Faker==13.3.2
+Flask==2.0.2
+Flask-Cors==3.0.9
+Flask-GraphQL==2.0.1
+graphene==2.1.8
+graphene-sqlalchemy==2.3.0
+graphql-core==2.3.2
