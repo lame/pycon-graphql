@@ -17,7 +17,7 @@ def init_db():
     # import all modules here that might define models so that
     # they will be registered properly on the metadata.  Otherwise
     # you will have to import them first before calling init_db()
-    from models import Department, Employee, Role
+    from models import Department, Employee, Company
 
     print("INIT DB")
 
@@ -27,27 +27,16 @@ def init_db():
     Base.metadata.create_all(bind=engine)
 
     # Create the fixtures
-    departments = [Department(name=fake.job()) for _ in range(20)]
-
-    role_names = [
-        "manager",
-        "engineer",
-        "designer",
-        "foo",
-        "bar",
-        "baz",
-        "i lack creativity",
-    ]
-    roles = [Role(name=role_name) for role_name in role_names]
+    companies = [Company(name=fake.company()) for _ in range(10)]
+    departments = [Department(name=fake.job(), company=sample(companies, 1)[0]) for _ in range(20)]
 
     employees = [
         Employee(
             name=fake.name(),
             department=sample(departments, 1)[0],
-            roles=sample(roles, 5),
         )
         for _ in range(1_000)
     ]
 
-    db_session.add_all(departments + roles + employees)
+    db_session.add_all(companies + departments + employees)
     db_session.commit()
