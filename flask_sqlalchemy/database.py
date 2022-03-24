@@ -19,8 +19,6 @@ def init_db():
     # you will have to import them first before calling init_db()
     from models import Department, Employee, Company
 
-    print("INIT DB")
-
     fake = Faker()
 
     Base.metadata.drop_all(bind=engine)
@@ -28,7 +26,9 @@ def init_db():
 
     # Create the fixtures
     companies = [Company(name=fake.company()) for _ in range(10)]
-    departments = [Department(name=fake.job(), company=sample(companies, 1)[0]) for _ in range(20)]
+    departments = [
+        Department(name=fake.job(), company=sample(companies, 1)[0]) for _ in range(20)
+    ]
 
     employees = [
         Employee(
