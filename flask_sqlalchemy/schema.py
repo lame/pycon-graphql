@@ -1,8 +1,4 @@
 # from aiodataloader import DataLoader
-from database import db_session
-from models import Department as DepartmentModel
-from models import Employee as EmployeeModel
-from models import Company as CompanyModel
 from collections import defaultdict
 
 import graphene
@@ -11,20 +7,34 @@ from graphene_sqlalchemy import SQLAlchemyConnectionField, SQLAlchemyObjectType
 from promise import Promise
 from promise.dataloader import DataLoader
 
-resolver_counter, dataloader_counter = 1, 1
+from database import db_session
+from models import Company as CompanyModel
+from models import Department as DepartmentModel
+from models import Employee as EmployeeModel
 
+USE_DATALOADERS = True
+resolver_counter, department_dataloader_counter, employee_dataloader_counter = 1, 1, 1
 
-class DepartmentQL(SQLAlchemyObjectType):
-    class Meta:
-        model = DepartmentModel
-        interfaces = (relay.Node,)
+class EmployeeDataLoader(DataLoader):
+    def batch_load_fn(self, department_ids) -> Promise:
 
+        employees_by_department_id = defaultdict(list)
+        employees = (
+            db_session.query(EmployeeModel)
+            .filter(EmployeeModel.department_id.in_(department_ids))
+            .all()
+        )
+        for employee in employees:
+            employees_by_department_id[employee.department_id].append(employee)
+        return Promise.resolve(
+            [employees_by_department_id[department_id] for department_id in department_ids]
+        )
 
 class DepartmentDataLoader(DataLoader):
     def batch_load_fn(self, company_ids) -> Promise:
-        global dataloader_counter
-        print(f"Dataloader Count: {dataloader_counter}")
-        dataloader_counter += 1
+        global department_dataloader_counter
+        print(f"Dataloader Count: {department_dataloader_counter}")
+        department_dataloader_counter += 1
 
         departments_by_company_id = defaultdict(list)
         departments = (
@@ -40,6 +50,28 @@ class DepartmentDataLoader(DataLoader):
 
 
 department_dataloader = DepartmentDataLoader()
+employee_dataloader = EmployeeDataLoader()
+
+
+class EmployeeQL(SQLAlchemyObjectType):
+    class Meta:
+        model = EmployeeModel
+        interfaces = (relay.Node,)
+
+
+class DepartmentQL(SQLAlchemyObjectType):
+    class Meta:
+        model = DepartmentModel
+        interfaces = (relay.Node,)
+
+    employees = graphene.ConnectionField(EmployeeQL.connection)
+
+    def resolve_employees(department, info: graphene.ResolveInfo) -> Promise:
+
+        if USE_DATALOADERS:
+            return employee_dataloader.load(department.id)
+
+        return department.employees
 
 
 class CompanyQL(SQLAlchemyObjectType):
@@ -49,24 +81,14 @@ class CompanyQL(SQLAlchemyObjectType):
 
     departments = graphene.ConnectionField(DepartmentQL.connection)
 
-    def resolve_departments(self, info: graphene.ResolveInfo) -> Promise:
+    def resolve_departments(company, info: graphene.ResolveInfo) -> Promise:
         global resolver_counter
         print(f"Resolver Count: {resolver_counter}")
         resolver_counter += 1
 
-        return department_dataloader.load(self.id)
-
-
-class EmployeeQL(SQLAlchemyObjectType):
-    class Meta:
-        model = EmployeeModel
-        interfaces = (relay.Node,)
-
-
-class EmployeeConnection(relay.Connection):
-    class Meta:
-        node = EmployeeQL
-
+        if USE_DATALOADERS:
+            return department_dataloader.load(company.id)
+        return company.departments
 
 class Query(graphene.ObjectType):
     node = relay.Node.Field()

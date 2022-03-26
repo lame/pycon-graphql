@@ -6,3 +6,6 @@ Flask-GraphQL==2.0.1
 graphene==2.1.8
 graphene-sqlalchemy==2.3.0
 graphql-core==2.3.2
+black[jupyter]==22.1.0
+jupyter~=1.0.0
+rise==5.7.1

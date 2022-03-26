@@ -25,9 +25,9 @@ def init_db():
     Base.metadata.create_all(bind=engine)
 
     # Create the fixtures
-    companies = [Company(name=fake.company()) for _ in range(10)]
+    companies = [Company(name=fake.company()) for _ in range(100)]
     departments = [
-        Department(name=fake.job(), company=sample(companies, 1)[0]) for _ in range(20)
+        Department(name=fake.job(), company=sample(companies, 1)[0]) for _ in range(200)
     ]
 
     employees = [
@@ -35,7 +35,7 @@ def init_db():
             name=fake.name(),
             department=sample(departments, 1)[0],
         )
-        for _ in range(1_000)
+        for _ in range(10_000)
     ]
 
     db_session.add_all(companies + departments + employees)

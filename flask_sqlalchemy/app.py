@@ -7,7 +7,7 @@ from functools import wraps
 from time import sleep
 from flask_graphql import GraphQLView
 
-ADD_DELAY = False
+ADD_DELAY = True
 DEBUG = False
 
 app = Flask(__name__)
@@ -15,7 +15,8 @@ app.debug = True
 
 
 app.add_url_rule(
-    "/graphql", view_func=GraphQLView.as_view("graphql", schema=schema, graphiql=True)
+    "/graphql",
+    view_func=GraphQLView.as_view("graphql", schema=schema, graphiql=True)
 )
 
 
@@ -27,7 +28,7 @@ def shutdown_session(exception=None):
 def wrap_sleep(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        print("simulated delay")
+        # print("simulated delay")
         sleep(0.001)
         return func(*args, **kwargs)
 
