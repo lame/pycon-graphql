@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
 from database import db_session, init_db, engine
-from flask import Flask
+from flask import Flask, g
 from schema import schema
 from functools import wraps
 from time import sleep
 from flask_graphql import GraphQLView
 
-ADD_DELAY = True
-DEBUG = False
+ADD_DELAY = False
+SHOW_SQL = False
 
 app = Flask(__name__)
 app.debug = True
@@ -38,7 +38,7 @@ def wrap_sleep(func):
 if __name__ == "__main__":
     init_db()
 
-    engine.echo = DEBUG
+    engine.echo = SHOW_SQL
     if ADD_DELAY:
         engine.dialect.execution_ctx_cls.pre_exec = wrap_sleep(
             engine.dialect.execution_ctx_cls.pre_exec

@@ -13,6 +13,7 @@ from models import Department as DepartmentModel
 from models import Employee as EmployeeModel
 
 USE_DATALOADERS = True
+
 resolver_counter, department_dataloader_counter, employee_dataloader_counter = 1, 1, 1
 
 class EmployeeDataLoader(DataLoader):
@@ -90,7 +91,7 @@ class CompanyQL(SQLAlchemyObjectType):
             return department_dataloader.load(company.id)
         return company.departments
 
-class Query(graphene.ObjectType):
+class RootQuery(graphene.ObjectType):
     node = relay.Node.Field()
 
     companies = SQLAlchemyConnectionField(CompanyQL.connection)
@@ -98,7 +99,7 @@ class Query(graphene.ObjectType):
     employees = SQLAlchemyConnectionField(EmployeeQL.connection)
 
 
-schema = graphene.Schema(query=Query)
+schema = graphene.Schema(query=RootQuery)
 
 
 # class UserLoader(DataLoader):
