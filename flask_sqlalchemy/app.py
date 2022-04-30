@@ -6,8 +6,12 @@ from schema import schema
 from functools import wraps
 from time import sleep
 from flask_graphql import GraphQLView
+from query_counter import QueryCounter
 
-ADD_DELAY = False
+# Live Demo 1
+ADD_DELAY = False  # No delay per transaction
+# ADD_DELAY = True  # Add 1 millisecond delay per transaction
+
 SHOW_SQL = False
 
 app = Flask(__name__)
